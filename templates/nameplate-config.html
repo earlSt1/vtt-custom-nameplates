@@ -1,0 +1,80 @@
+<form id="nameplate-config" autocomplete="off" onsubmit="event.preventDefault();">
+    <div class='form-group'>
+        <p id='nameplate-error' style='display:none;color:red'>Font size invalid. Must be between 5 and 72</p>
+    </div>
+    <script>        
+        document.querySelector('#custom-nameplates-edit').style.maxHeight="280px";
+        document.querySelector("#nameplate-config option[value='{{globalSettings.fontFamily}}']").selected = true;
+        document.querySelector("#nameplate-config select[name='fontFamily']").addEventListener('change',(event) => {
+            for (let token of canvas.layers.filter(x => x.name==='TokenLayer')[0].objects.children){
+                    token.nameplate.style.fontFamily = event.srcElement.value;
+            }
+        });
+        document.querySelector("#nameplate-config input[name='fontSize']").addEventListener('change',(event) => {
+            if (event.srcElement.value > 5 && event.srcElement.value < 72){
+                for (let token of canvas.layers.filter(x => x.name==='TokenLayer')[0].objects.children){
+                    token.nameplate.style.fontSize = event.srcElement.value+"px";
+                }
+                document.querySelector("#nameplate-error").style.display='none'
+            }else{
+                document.querySelector("#nameplate-error").style.display=''
+            }
+        })
+        document.querySelector("#nameplate-config input[data-edit='fontColor']").addEventListener('change',(event) => {
+            for (let token of canvas.layers.filter(x => x.name==='TokenLayer')[0].objects.children){
+                token.nameplate.style.fill = event.srcElement.value;
+            }
+        })
+        document.querySelector("#nameplate-config input[data-edit='strokeColor']").addEventListener('change',(event) => {
+            for (let token of canvas.layers.filter(x => x.name==='TokenLayer')[0].objects.children){
+                token.nameplate.style.stroke = event.srcElement.value;
+            }
+        })
+        document.querySelector("#nameplate-config input[data-edit='shadowColor']").addEventListener('change',(event) => {
+            for (let token of canvas.layers.filter(x => x.name==='TokenLayer')[0].objects.children){
+                token.nameplate.style.dropShadowColor = event.srcElement.value;
+            }
+        })
+        
+    </script>
+    <div class="form-group">
+        <label for="fontFamily">Font Family</label>
+        <div class="flexrow">
+            <select name="fontFamily" value="{{globalSettings.fontFamily}}">
+                {{#each fontFamilies}}
+                    <option value="{{this}}">{{this}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="fontSize">Font Size</label>
+        <div class="flexrow">
+            <input type="number" name="fontSize" value="{{globalSettings.fontSize}}" data-dtype="Integer" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="fontSize">Font Color</label>
+        <div class="flexrow">
+            <input type="text" name="fontColor" value="{{globalSettings.fontColor}}" data-dtype="String"/>
+            <input type="color" value="{{globalSettings.fontColor}}" data-edit="fontColor"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="strokeColor">Stroke Color</label>
+        <div class="flexrow">
+            <input type="text" name="strokeColor" value="{{globalSettings.strokeColor}}" data-dtype="String"/>
+            <input type="color" value="{{globalSettings.strokeColor}}" data-edit="strokeColor"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="shadowColor">Shadow Color</label>
+        <div class="flexrow">
+            <input type="text" name="shadowColor" value="{{globalSettings.shadowColor}}" data-dtype="String"/>
+            <input type="color" value="{{globalSettings.shadowColor}}" data-edit="shadowColor"/>
+        </div>
+    </div>
+    <div class='flexrow'>    
+        <button class='cfolder-submit' type="submit"><i class="fas fa-save"></i>Save</button>
+    </div>
+</form>
