@@ -13,6 +13,7 @@ In the module settings you can find the Edit Global Configuration button.
 
 1. Token specific configurations (e.g enemies, friendlies)
 2. Scene specific configurations?
+3. Custom resource bars?
 
 Any issues feel free to ping me on Discord (@Erceron#0370)
 
