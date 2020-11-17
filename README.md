@@ -1,3 +1,5 @@
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/earlSt1/vtt-custom-nameplates) ![GitHub issues](https://img.shields.io/github/issues/earlSt1/vtt-custom-nameplates) ![GitHub all releases](https://img.shields.io/github/downloads/earlSt1/vtt-custom-nameplates/total)
+
 # Custom Nameplates
 
 A module for FoundryVTT which allows you to customize token nameplates
