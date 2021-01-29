@@ -1,21 +1,17 @@
 export const modName = "Custom Nameplates";
 export const mod = "custom-nameplates";
 
-async function setAllTokenNameplateStyles(){
-    let allSettings = await game.settings.get(mod,'global-style');
-    for (let token of canvas.layers.filter(x => x.name==='TokenLayer')[0].objects.children){
-        if (token.nameplate != null){
-            if (token.nameplate.style != null){
-                token.nameplate.style.fontSize = allSettings.fontSize;
-                token.nameplate.style.fontFamily = allSettings.fontFamily;
-                token.nameplate.style.fill = allSettings.fontColor;
-                token.nameplate.style.dropShadowColor = allSettings.shadowColor;
-                token.nameplate.style.stroke= allSettings.strokeColor;
-            }
-        }
-    }
+async function setGlobalConfig(){
+    let globalStyle = game.settings.get(mod,'global-style');
+    setGlobalConfigParam(globalStyle);
 }
-
+async function setGlobalConfigParam(style){
+    CONFIG.canvasTextStyle.fontSize = style.fontSize;
+    CONFIG.canvasTextStyle.fontFamily = style.fontFamily;
+    CONFIG.canvasTextStyle.fill = style.fontColor;
+    CONFIG.canvasTextStyle.dropShadowColor = style.shadowColor;
+    CONFIG.canvasTextStyle.stroke= style.strokeColor;
+}
 class NameplateEditConfig extends FormApplication {
     static get defaultOptions() {
         const options = super.defaultOptions;
@@ -36,14 +32,15 @@ class NameplateEditConfig extends FormApplication {
       }
     async _updateObject(event, formData) {
         let globalSettings = formData;
-        game.settings.set(mod,'global-style',globalSettings).then(() => {
-            ui.notifications.notify('Updated global nameplate style');
-            setAllTokenNameplateStyles()
-        })
+        await game.settings.set(mod,'global-style',globalSettings) 
+        console.log(globalSettings)
+        ui.notifications.notify('Updated global nameplate style. Please refresh to update existing measured templates');
+        setGlobalConfigParam(globalSettings)
+
     }
     /** @override */
     async close(options){
-        setAllTokenNameplateStyles();
+        setGlobalConfig();
         return super.close(options);
     }
 }
@@ -70,21 +67,19 @@ async function registerSettings(){
     });
     let existing = game.settings.get(mod,'global-style')
     if (Object.keys(existing).length<5){
-        await game.settings.set(mod,'global-style',{
+        existing = {
             'fontFamily':'Signika',
             'fontSize':24,
             'fontColor':'#FFFFFF',
             'shadowColor':'#000000',
             'strokeColor':'#111111'
-        })
+        }
+        await game.settings.set(mod,'global-style',existing)
     }
+    setGlobalConfigParam(existing);
+    //Override token getTextStyle to prevent it from changing
+    Token.prototype._getTextStyle = function(){return CONFIG.canvasTextStyle}
 }
 Hooks.on('setup',() => {
     registerSettings()
-    Hooks.on("updateToken",async () => {
-        setAllTokenNameplateStyles();
-    });
-    Hooks.on("canvasReady",async () => {
-        setAllTokenNameplateStyles();
-    });
 });
