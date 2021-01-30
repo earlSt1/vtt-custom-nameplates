@@ -50,7 +50,6 @@ class NameplateEditConfig extends FormApplication {
         }
       }
     async _updateObject(event, formData) {
-        console.log(formData)
         if (formData.localConfig){
             let localSettings = {
                 'fontFamily':formData.localFontFamily,
