@@ -2,45 +2,45 @@
     <div class='form-group'>
         <p id='nameplate-error' style='display:none;color:red'>Font size invalid. Must be between 5 and 72</p>
     </div>
-    <script>        
-        document.querySelector('#custom-nameplates-edit').style.maxHeight="280px";
-        document.querySelector("#nameplate-config option[value='{{globalSettings.fontFamily}}']").selected = true;
-        document.querySelector("#nameplate-config select[name='fontFamily']").addEventListener('change',(event) => {
-            for (let token of canvas.layers.filter(x => x.name==='TokenLayer')[0].objects.children){
-                    token.nameplate.style.fontFamily = event.srcElement.value;
-            }
-        });
-        document.querySelector("#nameplate-config input[name='fontSize']").addEventListener('change',(event) => {
+    <script>
+        document.querySelector('#custom-nameplates-edit').style.maxHeight="560px";
+        
+        document.querySelector("input[name='globalFontSize']").addEventListener('change',(event) => {
             if (event.srcElement.value > 5 && event.srcElement.value < 72){
-                for (let token of canvas.layers.filter(x => x.name==='TokenLayer')[0].objects.children){
-                    token.nameplate.style.fontSize = event.srcElement.value+"px";
-                }
                 document.querySelector("#nameplate-error").style.display='none'
             }else{
                 document.querySelector("#nameplate-error").style.display=''
             }
         })
-        document.querySelector("#nameplate-config input[data-edit='fontColor']").addEventListener('change',(event) => {
-            for (let token of canvas.layers.filter(x => x.name==='TokenLayer')[0].objects.children){
-                token.nameplate.style.fill = event.srcElement.value;
+        document.querySelector("input[name='localFontSize']").addEventListener('change',(event) => {
+            if (event.srcElement.value > 5 && event.srcElement.value < 72){
+                document.querySelector("#nameplate-error").style.display='none'
+            }else{
+                document.querySelector("#nameplate-error").style.display=''
             }
         })
-        document.querySelector("#nameplate-config input[data-edit='strokeColor']").addEventListener('change',(event) => {
-            for (let token of canvas.layers.filter(x => x.name==='TokenLayer')[0].objects.children){
-                token.nameplate.style.stroke = event.srcElement.value;
-            }
-        })
-        document.querySelector("#nameplate-config input[data-edit='shadowColor']").addEventListener('change',(event) => {
-            for (let token of canvas.layers.filter(x => x.name==='TokenLayer')[0].objects.children){
-                token.nameplate.style.dropShadowColor = event.srcElement.value;
-            }
-        })
+        //Selecting correct font family
+        document.querySelector("#globalFontFamily option[value='{{globalSettings.fontFamily}}']").selected = true;
+        document.querySelector("#localFontFamily option[value='{{localSettings.fontFamily}}']").selected = true;
+
         
+        document.querySelector('#localConfigEnabled').addEventListener('change',function(e){
+            if (e.target.checked){
+                for (element of document.querySelector('#localConfigSettings').querySelectorAll('input,select')){
+                    element.disabled=false;
+                }
+            }else{
+                for (element of document.querySelector('#localConfigSettings').querySelectorAll('input,select')){
+                    element.disabled=true;
+                }
+            }
+        })
     </script>
+    <h2>Global</h3>
     <div class="form-group">
-        <label for="fontFamily">Font Family</label>
+        <label for="globalFontFamily">Font Family</label>
         <div class="flexrow">
-            <select name="fontFamily" value="{{globalSettings.fontFamily}}">
+            <select id="globalFontFamily" name="globalFontFamily" value="{{globalSettings.fontFamily}}">
                 {{#each fontFamilies}}
                     <option value="{{this}}">{{this}}</option>
                 {{/each}}
@@ -48,33 +48,79 @@
         </div>
     </div>
     <div class="form-group">
-        <label for="fontSize">Font Size</label>
+        <label for="globalFontSize">Font Size</label>
         <div class="flexrow">
-            <input type="number" name="fontSize" value="{{globalSettings.fontSize}}" data-dtype="Integer" />
+            <input type="number" name="globalFontSize" value="{{globalSettings.fontSize}}" data-dtype="Integer" />
         </div>
     </div>
     <div class="form-group">
-        <label for="fontSize">Font Color</label>
+        <label for="globalFontColor">Font Color</label>
         <div class="flexrow">
-            <input type="text" name="fontColor" value="{{globalSettings.fontColor}}" data-dtype="String"/>
-            <input type="color" value="{{globalSettings.fontColor}}" data-edit="fontColor"/>
+            <input type="text" name="globalFontColor" value="{{globalSettings.fontColor}}" data-dtype="String"/>
+            <input type="color" value="{{globalSettings.fontColor}}" data-edit="globalFontColor"/>
         </div>
     </div>
     <div class="form-group">
-        <label for="strokeColor">Stroke Color</label>
+        <label for="globalStrokeColor">Stroke Color</label>
         <div class="flexrow">
-            <input type="text" name="strokeColor" value="{{globalSettings.strokeColor}}" data-dtype="String"/>
-            <input type="color" value="{{globalSettings.strokeColor}}" data-edit="strokeColor"/>
+            <input type="text" name="globalStrokeColor" value="{{globalSettings.strokeColor}}" data-dtype="String"/>
+            <input type="color" value="{{globalSettings.strokeColor}}" data-edit="globalStrokeColor"/>
         </div>
     </div>
     <div class="form-group">
-        <label for="shadowColor">Shadow Color</label>
+        <label for="globalShadowColor">Shadow Color</label>
         <div class="flexrow">
-            <input type="text" name="shadowColor" value="{{globalSettings.shadowColor}}" data-dtype="String"/>
-            <input type="color" value="{{globalSettings.shadowColor}}" data-edit="shadowColor"/>
+            <input type="text" name="globalShadowColor" value="{{globalSettings.shadowColor}}" data-dtype="String"/>
+            <input type="color" value="{{globalSettings.shadowColor}}" data-edit="globalShadowColor"/>
         </div>
     </div>
-    <div class='flexrow'>    
-        <button class='cfolder-submit' type="submit"><i class="fas fa-save"></i>Save</button>
+    <div class="form-group">
+        <label for="localConfig">Scene specific config</label>
+        <div class="flexrow">
+            <input type="checkbox" name="localConfig" id='localConfigEnabled' {{#if hasLocalSettings}}checked{{/if}}/>
+        </div>
+    </div>
+    <div id="localConfigSettings">
+        <h2>Local</h2>
+        <div class="form-group">
+        <label for="localFontFamily">Font Family</label>
+        <div class="flexrow">
+            <select id="localFontFamily" name="localFontFamily" value="{{localSettings.fontFamily}}" {{#unless hasLocalSettings}}disabled{{/unless}}>
+                {{#each fontFamilies}}
+                    <option value="{{this}}">{{this}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+        <div class="form-group">
+            <label for="localFontSize">Font Size</label>
+            <div class="flexrow">
+                <input type="number" name="localFontSize" value="{{localSettings.fontSize}}" data-dtype="Integer" {{#unless hasLocalSettings}}disabled{{/unless}}/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="localFontColor">Font Color</label>
+            <div class="flexrow">
+                <input type="text" name="localFontColor" value="{{localSettings.fontColor}}" data-dtype="String" {{#unless hasLocalSettings}}disabled{{/unless}}/>
+                <input type="color" value="{{localSettings.fontColor}}" data-edit="localFontColor"{{#unless hasLocalSettings}}disabled{{/unless}}/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="localStrokeColor">Stroke Color</label>
+            <div class="flexrow">
+                <input type="text" name="localStrokeColor" value="{{localSettings.strokeColor}}" data-dtype="String" {{#unless hasLocalSettings}}disabled{{/unless}}/>
+                <input type="color" value="{{localSettings.strokeColor}}" data-edit="localStrokeColor"{{#unless hasLocalSettings}}disabled{{/unless}}/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="localShadowColor">Shadow Color</label>
+            <div class="flexrow">
+                <input type="text" name="localShadowColor" value="{{localSettings.shadowColor}}" data-dtype="String" {{#unless hasLocalSettings}}disabled{{/unless}}/>
+                <input type="color" value="{{localSettings.shadowColor}}" data-edit="localShadowColor" {{#unless hasLocalSettings}}disabled{{/unless}}/>
+            </div>
+        </div>
+        <div class='flexrow'>    
+            <button class='cfolder-submit' type="submit"><i class="fas fa-save"></i>Save</button>
+        </div>
     </div>
 </form>
