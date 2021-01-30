@@ -2,20 +2,20 @@
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/earlSt1/vtt-custom-nameplates) ![GitHub issues](https://img.shields.io/github/issues/earlSt1/vtt-custom-nameplates) ![GitHub all releases](https://img.shields.io/github/downloads/earlSt1/vtt-custom-nameplates/total) ![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fcustom-nameplates)
 
-A module for FoundryVTT which allows you to customize token nameplates
+A module for FoundryVTT which allows you to customize token, template, and ruler nameplates
 
-![](./example.png)
+![](./nameplates1.gif)
 
 ## Instructions
 In the module settings you can find the Edit Global Configuration button.
-- This form dynamically updates, so you can see what changes are like in real time
-- If you close this form, the changes will not be made and will revert back to the previous configuration
+- Global configurations will apply to all scenes if they do not have a Local configuration
+- Scene specific configurations, or Local configurations, will overeride the global configuration for the current viewed scene
 
 ## Future
 
 1. Token specific configurations (e.g enemies, friendlies)
-2. Scene specific configurations?
-3. Custom resource bars?
+2. ~~Scene specific configurations?~~ Now in v1.0.1!
+3. ~~Measured template and Ruler configuration~~ Now in v1.0.1!
 
 Any issues feel free to ping me on Discord (@Erceron#0370)
 
