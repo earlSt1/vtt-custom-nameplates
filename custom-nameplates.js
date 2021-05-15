@@ -1,3 +1,6 @@
+'use strict';
+import {libWrapper} from './shim.js';
+
 export const modName = "Custom Nameplates";
 export const mod = "custom-nameplates";
 export const DEFAULT_STYLE = {
@@ -114,7 +117,14 @@ async function registerSettings(){
     }
     setSceneConfigParam(existing);
     //Override token getTextStyle to prevent it from changing
-    Token.prototype._getTextStyle = function(){return CONFIG.canvasTextStyle}
+    libWrapper.register(mod,'Token.prototype._getTextStyle',function(wrapped, ...args){
+        return foundry.utils.mergeObject(wrapped(...args),CONFIG.canvasTextStyle);
+    },'WRAPPER');
+    //Mesured Template style change
+    libWrapper.register(mod,'MeasuredTemplate.prototype._refreshRulerText',function(wrapped, ...args){
+        wrapped(...args);
+        this.ruler.style = foundry.utils.mergeObject(this.ruler.style,CONFIG.canvasTextStyle);
+    },'WRAPPER');
 }
 Hooks.on('setup',() => {
     registerSettings()
