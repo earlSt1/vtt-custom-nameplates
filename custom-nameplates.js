@@ -118,12 +118,7 @@ async function registerSettings(){
     setSceneConfigParam(existing);
     //Override token getTextStyle to prevent it from changing
     libWrapper.register(mod,'Token.prototype._getTextStyle',function(wrapped, ...args){
-        return foundry.utils.mergeObject(wrapped(...args),CONFIG.canvasTextStyle);
-    },'WRAPPER');
-    //Mesured Template style change
-    libWrapper.register(mod,'MeasuredTemplate.prototype._refreshRulerText',function(wrapped, ...args){
-        wrapped(...args);
-        this.ruler.style = foundry.utils.mergeObject(this.ruler.style,CONFIG.canvasTextStyle);
+        return mergeObject(wrapped(...args),CONFIG.canvasTextStyle);
     },'WRAPPER');
 }
 Hooks.on('setup',() => {
