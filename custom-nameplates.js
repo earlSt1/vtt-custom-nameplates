@@ -59,7 +59,8 @@ class NameplateEditConfig extends FormApplication {
                 'fontSize':formData.localFontSize,
                 'fontColor':formData.localFontColor,
                 'shadowColor':formData.localShadowColor,
-                'strokeColor':formData.localStrokeColor
+                'strokeColor':formData.localStrokeColor,
+                'autoScale':formData.globalAutoScaleFont
             }
             let existingLocalStyles = game.settings.get(mod,'local-styles');
             existingLocalStyles[game.scenes.viewed.id] = localSettings;
@@ -70,7 +71,8 @@ class NameplateEditConfig extends FormApplication {
                 'fontSize':formData.globalFontSize,
                 'fontColor':formData.globalFontColor,
                 'shadowColor':formData.globalShadowColor,
-                'strokeColor':formData.globalStrokeColor
+                'strokeColor':formData.globalStrokeColor,
+                'autoScale':formData.globalAutoScaleFont
             }
             await game.settings.set(mod,'global-style',globalSettings);
 
@@ -132,3 +134,37 @@ Hooks.on('setup',() => {
         setSceneConfig();
     })
 });
+Hooks.once('canvasReady',() => {
+    Hooks.on('canvasPan',async (c) => {
+        let globalStyle = game.settings.get(mod,'global-style');
+        let localStyle = game.settings.get(mod,'local-styles');
+        let zoomLevel = c.stage.scale.x;
+        let scale = 2;
+        if (zoomLevel > 0.7 && zoomLevel < 0.9)
+            scale = 2.4
+        if (zoomLevel > 0.5 && zoomLevel <= 0.7)
+            scale = 2.6
+        if (zoomLevel > 0.3 && zoomLevel <= 0.5)
+            scale = 2.8
+        if (zoomLevel < 0.3)
+            scale = 3;
+        if (localStyle[game.scenes.viewed.id] != null && localStyle.autoScale){
+            let fontSize = localStyle.fontSize;
+            let change = Math.round((1-zoomLevel)*(scale*10))
+            CONFIG.canvasTextStyle.fontSize = Math.max(fontSize + change,fontSize/2)
+        }else if (globalStyle.autoScale){
+            let fontSize = globalStyle.fontSize;
+            let change = Math.round((1-zoomLevel)*(scale*10))
+            CONFIG.canvasTextStyle.fontSize = Math.max(fontSize + change,fontSize/2)
+        }
+        for (let token of canvas.tokens.placeables){
+            await token.draw();
+            token.visible = true;
+        }
+        if (document.querySelector('.scene-control.active[data-control="measure"]')){
+            for (let template of canvas.templates.placeables){
+                await template.draw();
+            }
+        }
+    });
+})
