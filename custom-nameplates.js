@@ -83,7 +83,7 @@ class NameplateEditConfig extends FormApplication {
                 await game.settings.set(mod,'local-styles',existingLocalStyles);
             }
         }
-        ui.notifications.notify('Updated nameplate styles. Please refresh or change scenes to update existing measured templates');
+        ui.notifications.notify('Updated nameplate styles. Pan the canvas to update nameplates');
         setSceneConfig();
     }
 }
