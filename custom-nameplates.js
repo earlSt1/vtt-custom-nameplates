@@ -83,7 +83,7 @@ class NameplateEditConfig extends FormApplication {
                 await game.settings.set(mod,'local-styles',existingLocalStyles);
             }
         }
-        ui.notifications.notify('Updated nameplate styles. Pan the canvas to update nameplates');
+        ui.notifications.notify('Updated nameplate styles. Please refresh for changes to apply');
         setSceneConfig();
     }
 }
@@ -98,26 +98,15 @@ async function checkAutoScale(c){
     let gs = (c.scene.dimensions.size /100) 
     let zs = 1/c.stage.scale.x
 
-    if (localStyle[game.scenes.viewed.id] != null && localStyle.autoScale){
-        let fontSize = localStyle.fontSize;
-        let newFontSize = Math.max(fontSize * gs*zs,fontSize);
-        if (newFontSize == fontSize)
-            return
-        CONFIG.canvasTextStyle.fontSize  = newFontSize
-    }else if (globalStyle.autoScale){
-        let fontSize = globalStyle.fontSize;
-        let newFontSize = Math.max(fontSize * gs*zs,fontSize);
-        if (newFontSize == fontSize)
-            return
-        CONFIG.canvasTextStyle.fontSize  = newFontSize
-    }
-    for (let token of canvas.tokens.placeables){
-        await token.draw();
-        token.visible = true;
-    }
-    if (document.querySelector('.scene-control.active[data-control="measure"]')){
-        for (let template of canvas.templates.placeables){
-            await template.draw();
+    if ((localStyle[game.scenes.viewed.id] != null && localStyle.autoScale)
+            || globalStyle.autoScale && localStyle[game.scenes.viewed.id] == null){
+        for (let token of canvas.tokens.placeables){
+            token.nameplate.scale.set(Math.max(gs*zs,0.8))
+        }
+        if (document.querySelector('.scene-control.active[data-control="measure"]')){
+            for (let template of canvas.templates.placeables){
+                template.ruler.scale.set(Math.max(gs*zs,0.8))
+            }
         }
     }
 }
@@ -167,10 +156,9 @@ Hooks.on('setup',() => {
     Hooks.on('canvasInit',() => {
         setSceneConfig();
     })
-    
-});
-Hooks.on('canvasReady',() => {
-    Hooks.on('canvasPan',async (c) => {
-        await checkAutoScale(c); 
+    Hooks.once('canvasReady',() => {
+        Hooks.on('canvasPan',(c) => {
+            checkAutoScale(c); 
+        })
     })
-})
+});
