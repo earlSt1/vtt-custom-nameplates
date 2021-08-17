@@ -87,6 +87,40 @@ class NameplateEditConfig extends FormApplication {
         setSceneConfig();
     }
 }
+async function checkAutoScale(c){
+    if (c.tokens.preview.children.length > 0
+        || c.templates.preview.children.length > 0)
+        return;
+    let globalStyle = game.settings.get(mod,'global-style');
+    let localStyle = game.settings.get(mod,'local-styles');
+    // Taken from Easy Ruler Scale, a mod by Kandashi
+    // https://github.com/kandashi/easy-ruler-scale
+    let gs = (c.scene.dimensions.size /100) 
+    let zs = 1/c.stage.scale.x
+
+    if (localStyle[game.scenes.viewed.id] != null && localStyle.autoScale){
+        let fontSize = localStyle.fontSize;
+        let newFontSize = Math.max(fontSize * gs*zs,fontSize);
+        if (newFontSize == fontSize)
+            return
+        CONFIG.canvasTextStyle.fontSize  = newFontSize
+    }else if (globalStyle.autoScale){
+        let fontSize = globalStyle.fontSize;
+        let newFontSize = Math.max(fontSize * gs*zs,fontSize);
+        if (newFontSize == fontSize)
+            return
+        CONFIG.canvasTextStyle.fontSize  = newFontSize
+    }
+    for (let token of canvas.tokens.placeables){
+        await token.draw();
+        token.visible = true;
+    }
+    if (document.querySelector('.scene-control.active[data-control="measure"]')){
+        for (let template of canvas.templates.placeables){
+            await template.draw();
+        }
+    }
+}
 
 async function registerSettings(){
     game.settings.register(mod, 'global-style', {
@@ -133,38 +167,10 @@ Hooks.on('setup',() => {
     Hooks.on('canvasInit',() => {
         setSceneConfig();
     })
+    
 });
-Hooks.once('canvasReady',() => {
+Hooks.on('canvasReady',() => {
     Hooks.on('canvasPan',async (c) => {
-        let globalStyle = game.settings.get(mod,'global-style');
-        let localStyle = game.settings.get(mod,'local-styles');
-        let zoomLevel = c.stage.scale.x;
-        let scale = 2;
-        if (zoomLevel > 0.7 && zoomLevel < 0.9)
-            scale = 2.4
-        if (zoomLevel > 0.5 && zoomLevel <= 0.7)
-            scale = 2.6
-        if (zoomLevel > 0.3 && zoomLevel <= 0.5)
-            scale = 2.8
-        if (zoomLevel < 0.3)
-            scale = 3;
-        if (localStyle[game.scenes.viewed.id] != null && localStyle.autoScale){
-            let fontSize = localStyle.fontSize;
-            let change = Math.round((1-zoomLevel)*(scale*10))
-            CONFIG.canvasTextStyle.fontSize = Math.max(fontSize + change,fontSize/2)
-        }else if (globalStyle.autoScale){
-            let fontSize = globalStyle.fontSize;
-            let change = Math.round((1-zoomLevel)*(scale*10))
-            CONFIG.canvasTextStyle.fontSize = Math.max(fontSize + change,fontSize/2)
-        }
-        for (let token of canvas.tokens.placeables){
-            await token.draw();
-            token.visible = true;
-        }
-        if (document.querySelector('.scene-control.active[data-control="measure"]')){
-            for (let template of canvas.templates.placeables){
-                await template.draw();
-            }
-        }
-    });
+        await checkAutoScale(c); 
+    })
 })
