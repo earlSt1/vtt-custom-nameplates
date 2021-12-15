@@ -101,11 +101,11 @@ async function checkAutoScale(c){
     if ((localStyle[game.scenes.viewed.id] != null && localStyle.autoScale)
             || globalStyle.autoScale && localStyle[game.scenes.viewed.id] == null){
         for (let token of canvas.tokens.placeables){
-            token.nameplate.scale.set(Math.max(gs*zs,0.8))
+            token.hud.nameplate.scale.set(Math.max(gs*zs,0.8))
         }
         if (document.querySelector('.scene-control.active[data-control="measure"]')){
             for (let template of canvas.templates.placeables){
-                template.ruler.scale.set(Math.max(gs*zs,0.8))
+                template.hud.ruler.scale.set(Math.max(gs*zs,0.8))
             }
         }
     }
@@ -148,7 +148,7 @@ async function registerSettings(){
     //Mesured Template style change
     libWrapper.register(mod,'MeasuredTemplate.prototype._refreshRulerText',function(wrapped, ...args){
         wrapped(...args);
-        this.ruler.style = foundry.utils.mergeObject(this.ruler.style,CONFIG.canvasTextStyle);
+        this.hud.ruler.style = foundry.utils.mergeObject(this.hud.ruler.style,CONFIG.canvasTextStyle);
     },'WRAPPER');
 }
 Hooks.on('setup',() => {
