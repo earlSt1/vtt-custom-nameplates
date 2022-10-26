@@ -21,7 +21,7 @@ async function setSceneConfig(){
     }
 }
 async function setSceneConfigParam(style){
-    CONFIG.canvasTextStyle.fontSize = style.fontSize;
+    CONFIG.canvasTextStyle.fontSize = style.fontSize + 'px';
     CONFIG.canvasTextStyle.fontFamily = style.fontFamily;
     CONFIG.canvasTextStyle.fill = style.fontColor;
     CONFIG.canvasTextStyle.dropShadowColor = style.shadowColor;
@@ -101,11 +101,11 @@ async function checkAutoScale(c){
     if ((localStyle[game.scenes.viewed.id] != null && localStyle.autoScale)
             || globalStyle.autoScale && localStyle[game.scenes.viewed.id] == null){
         for (let token of canvas.tokens.placeables){
-            token.hud.nameplate.scale.set(Math.max(gs*zs,0.8))
+            token.nameplate.scale.set(Math.max(gs*zs,0.8))
         }
         if (document.querySelector('.scene-control.active[data-control="measure"]')){
             for (let template of canvas.templates.placeables){
-                template.hud.ruler.scale.set(Math.max(gs*zs,0.8))
+                template.ruler.scale.set(Math.max(gs*zs,0.8))
             }
         }
     }
@@ -148,7 +148,7 @@ async function registerSettings(){
     //Mesured Template style change
     libWrapper.register(mod,'MeasuredTemplate.prototype._refreshRulerText',function(wrapped, ...args){
         wrapped(...args);
-        this.hud.ruler.style = foundry.utils.mergeObject(this.hud.ruler.style,CONFIG.canvasTextStyle);
+        this.ruler.style = foundry.utils.mergeObject(this.ruler.style,CONFIG.canvasTextStyle);
     },'WRAPPER');
 }
 Hooks.on('setup',() => {
