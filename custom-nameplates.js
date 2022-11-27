@@ -49,7 +49,7 @@ class NameplateEditConfig extends FormApplication {
           globalSettings: game.settings.get(mod,'global-style'),
           localSettings: localSetting,
           hasLocalSettings: hasLocalSettings,
-          fontFamilies: CONFIG.fontFamilies
+          fontFamilies: Object.keys(CONFIG.fontDefinitions)
         }
       }
     async _updateObject(event, formData) {
