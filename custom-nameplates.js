@@ -108,6 +108,9 @@ async function checkAutoScale(c){
                 template.ruler.scale.set(Math.max(gs*zs,0.8))
             }
         }
+        for (let note of canvas.notes.placeables){
+            note.tooltip.scale.set(Math.max(gs*zs,0.8))
+        }
     }
 }
 
@@ -149,6 +152,10 @@ async function registerSettings(){
     libWrapper.register(mod,'MeasuredTemplate.prototype._refreshRulerText',function(wrapped, ...args){
         wrapped(...args);
         this.ruler.style = foundry.utils.mergeObject(this.ruler.style,CONFIG.canvasTextStyle);
+    },'WRAPPER');
+    // Notes change
+    libWrapper.register(mod,'Note.prototype._getTextStyle',function(wrapped, ...args){
+        return foundry.utils.mergeObject(wrapped(...args),CONFIG.canvasTextStyle);
     },'WRAPPER');
 }
 Hooks.on('setup',() => {
