@@ -24,8 +24,8 @@ export class StyleDefinition {
             setting.fontSize,
             setting.fontFamily,
             setting.fontColor,
-            setting.dropShadowColor,
-            setting.stroke,
+            setting.shadowColor,
+            setting.strokeColor,
             setting.autoScale
         );
     }
@@ -60,9 +60,14 @@ export class CustomNameplates {
         }
         return localStyles;
     }
+    async saveLocalStyles(localStyles) {
+        await game.settings.set("custom-nameplates", "local-styles", localStyles);
+    }
+    async saveGlobalStyle(globalStyle) {
+        await game.settings.set("custom-nameplates", "global-style", globalStyle);
+    }
     isSceneBeingViewed() {
-        var _a;
-        return (_a = this.game.scenes) === null || _a === void 0 ? void 0 : _a.viewed;
+        return this.game.scenes?.viewed;
     }
     setCanvasStyle() {
         const globalStyle = this.loadGlobalStyle();
@@ -173,7 +178,7 @@ class NameplateEditConfig extends FormApplication {
             localSetting = DEFAULT_STYLE;
         }
         return {
-            globalSettings: game.settings.get(mod, "global-style"),
+            globalSettings: game.customNameplates.loadGlobalStyle(),
             localSettings: localSetting,
             hasLocalSettings: hasLocalSettings,
             fontFamilies: Object.keys(CONFIG.fontDefinitions),
@@ -189,11 +194,13 @@ class NameplateEditConfig extends FormApplication {
                 strokeColor: formData.localStrokeColor,
                 autoScale: formData.globalAutoScaleFont,
             };
-            let existingLocalStyles = game.settings.get(mod, "local-styles");
-            existingLocalStyles[game.scenes.viewed.id] = localSettings;
-            await game.settings.set(mod, "local-styles", existingLocalStyles);
+            let localStyles = game.customNameplates.loadLocalStyles();
+            if (game.scenes?.viewed) {
+                localStyles[game.scenes.viewed.id] = localSettings;
+            }
+            await game.customNameplates.saveLocalStyles(localStyles);
         } else {
-            let globalSettings = {
+            let globalStyle = {
                 fontFamily: formData.globalFontFamily,
                 fontSize: formData.globalFontSize,
                 fontColor: formData.globalFontColor,
@@ -201,17 +208,19 @@ class NameplateEditConfig extends FormApplication {
                 strokeColor: formData.globalStrokeColor,
                 autoScale: formData.globalAutoScaleFont,
             };
-            await game.settings.set(mod, "global-style", globalSettings);
+            await game.customNameplates.saveGlobalStyle(globalStyle);
 
             //Remove local settings (as local settings not enabled)
-            let existingLocalStyles = game.settings.get(mod, "local-styles");
-            if (existingLocalStyles[game.scenes.viewed.id] != null) {
-                delete existingLocalStyles[game.scenes.viewed.id];
-                await game.settings.set(mod, "local-styles", existingLocalStyles);
+            if (game.scenes?.viewed) {
+                let localStyles = game.customNameplates.loadLocalStyles();
+                if (localStyles[game.scenes.viewed.id] != null) {
+                    delete localStyles[game.scenes.viewed.id];
+                    await game.customNameplates.saveLocalStyles(localStyles);
+                }
             }
         }
         ui.notifications.notify("Updated nameplate styles. Please refresh for changes to apply");
-        game.customNameplates.setSceneConfig();
+        game.customNameplates.setCanvasStyle();
     }
 }
 
@@ -240,12 +249,11 @@ async function registerSettings() {
         type: NameplateEditConfig,
         restricted: true,
     });
-    let existing = game.settings.get(mod, "global-style");
+    let existing = game.customNameplates.loadGlobalStyle();
     if (Object.keys(existing).length < 5) {
-        existing = DEFAULT_STYLE;
-        await game.settings.set(mod, "global-style", existing);
+        await game.customNameplates.setGlobalStyle(DEFAULT_STYLE);
     }
-    setSceneConfigParam(existing);
+    game.customNameplates.setCanvasStyle(existing);
     registerLibWrapper();
 }
 function registerLibWrapper() {
@@ -278,10 +286,10 @@ function registerLibWrapper() {
 function libWrapperRegister(target, wrapper, type) {
     libWrapper.register(mod, target, wrapper, type);
 }
-Hooks.on("setup", () => {
-    registerSettings();
+Hooks.on("setup", async () => {
+    await registerSettings();
     Hooks.on("canvasInit", () => {
-        game.customNameplates.setSceneConfig();
+        game.customNameplates.setCanvasStyle();
     });
     Hooks.once("canvasReady", () => {
         Hooks.on("canvasPan", (c) => {
