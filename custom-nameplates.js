@@ -11,12 +11,12 @@ export const DEFAULT_STYLE = {
     stroke: "#111111",
 };
 export class StyleDefinition {
-    constructor(fontSize, fontFamily, fontColor, dropShadowColor, stroke, autoScale = false) {
+    constructor(fontSize, fontFamily, fontColor, shadowColor, strokeColor, autoScale = false) {
         this.fontSize = fontSize;
         this.fontFamily = fontFamily;
         this.fontColor = fontColor;
-        this.dropShadowColor = dropShadowColor;
-        this.stroke = stroke;
+        this.shadowColor = shadowColor;
+        this.strokeColor = strokeColor;
         this.autoScale = autoScale;
     }
     static fromSetting(setting) {
@@ -34,8 +34,8 @@ export class StyleDefinition {
             fontSize: this.fontSize + "px",
             fontFamily: this.fontFamily,
             fill: this.fontColor,
-            dropShadowColor: this.dropShadowColor,
-            stroke: this.stroke,
+            dropShadowColor: this.shadowColor,
+            stroke: this.strokeColor,
         };
     }
 }
@@ -181,7 +181,7 @@ class NameplateEditConfig extends FormApplication {
             globalSettings: game.customNameplates.loadGlobalStyle(),
             localSettings: localSetting,
             hasLocalSettings: hasLocalSettings,
-            fontFamilies: Object.keys(CONFIG.fontDefinitions),
+            fontFamilies: FontConfig.getAvailableFontChoices(),
         };
     }
     async _updateObject(event, formData) {
