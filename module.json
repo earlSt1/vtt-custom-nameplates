@@ -9,14 +9,14 @@
             "discord": "Erceron#0370"
         }
     ],
-    "version": "2.1.3",
+    "version": "2.1.4",
     "compatibility": {
         "minimum": 11,
-        "verified": "11.306",
+        "verified": "11.313",
         "maximum": 11
     },
     "esmodules": ["./custom-nameplates.js"],
     "url": "https://github.com/earlSt1/vtt-custom-nameplates",
     "manifest": "https://raw.githubusercontent.com/earlSt1/vtt-custom-nameplates/11x-update/module.json",
-    "download": "https://github.com/earlSt1/vtt-custom-nameplates/releases/download/2.1.3/2.1.3.zip"
+    "download": "https://github.com/earlSt1/vtt-custom-nameplates/releases/download/2.1.4/2.1.4.zip"
 }
