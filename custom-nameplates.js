@@ -127,21 +127,22 @@ export class CustomNameplates {
     isAutoScaleEnabledForScene() {
         return this.loadLocalStyles().has(this.game.scenes.viewed.id) || this.loadGlobalStyle().autoScale;
     }
-    checkAutoScale(canvas) {
+    isAutoScaleNeeded() {
+        return this.isSceneBeingViewed() && this.isAutoScaleEnabledForScene();
+    }
+    performAutoScale(canvas) {
         if (canvas.tokens.preview.children.length > 0 || canvas.templates.preview.children.length > 0) return;
-        if (this.isSceneBeingViewed()) {
-            if (this.isAutoScaleEnabledForScene()) {
-                CustomNameplates._autoScaleTokenNameplates(canvas);
-                CustomNameplates._autoScaleTemplateNameplates(canvas);
-                CustomNameplates._autoScaleNotes(canvas);
-            }
+        if (this.isAutoScaleNeeded()) {
+            CustomNameplates._autoScaleTokenNameplates(canvas);
+            CustomNameplates._autoScaleTemplateNameplates(canvas);
+            CustomNameplates._autoScaleNotes(canvas);
         }
     }
     static _autoScaleTokenNameplates(canvas) {
         if (canvas.tokens) {
             for (let token of canvas.tokens.placeables) {
                 if (token.nameplate) {
-                    token.nameplate.scale.set(this._calculateAutoScale(canvas.scene.dimensions.size, canvas.stage.scale.x));
+                    redrawTokenNameplate(token, game.customNameplates.calculateAutoScale());
                 }
             }
         }
@@ -151,7 +152,7 @@ export class CustomNameplates {
             if (canvas.templates) {
                 for (let template of canvas.templates.placeables) {
                     if (template.ruler) {
-                        template.ruler.scale.set(this._calculateAutoScale(canvas.scene.dimensions.size, canvas.stage.scale.x));
+                        template.ruler.scale.set(game.customNameplates.calculateAutoScale());
                     }
                 }
             }
@@ -160,11 +161,11 @@ export class CustomNameplates {
     static _autoScaleNotes(canvas) {
         if (canvas.notes) {
             for (let note of canvas.notes.placeables) {
-                note.tooltip.scale.set(this._calculateAutoScale(canvas.scene.dimensions.size, canvas.stage.scale.x));
+                note.tooltip.scale.set(game.customNameplates.calculateAutoScale());
             }
         }
     }
-    static _calculateAutoScale(sceneDimensionSize, zoomStage) {
+    calculateAutoScale(sceneDimensionSize = canvas.scene.dimensions.size, zoomStage = canvas.stage.scale.x) {
         // Taken from Easy Ruler Scale, a mod by Kandashi
         // https://github.com/kandashi/easy-ruler-scale
         const gs = sceneDimensionSize / 100;
@@ -287,6 +288,65 @@ function registerLibWrapper() {
         },
         "WRAPPER"
     );
+    libWrapperRegister(
+        "Token.prototype._draw",
+        async function (wrapped, ...args) {
+            await wrapped(...args);
+            this.removeChild(this.nameplate);
+            if (this.circularNameplate) {
+                this.removeChild(this.circularNameplate);
+            }
+            this.circularNameplate = this.addChild(drawCircularNameplate(this));
+        },
+        "WRAPPER"
+    );
+    libWrapperRegister(
+        "Token.prototype._refreshNameplate",
+        async function (wrapped, ...args) {
+            await wrapped(...args);
+            this.removeChild(this.nameplate);
+            if (this.circularNameplate) {
+                this.removeChild(this.circularNameplate);
+            }
+            this.circularNameplate = this.addChild(drawCircularNameplate(this));
+        },
+        "WRAPPER"
+    );
+}
+function drawCircularNameplate(token) {
+    if (game.customNameplates?.isAutoScaleNeeded()) {
+        return drawCircularNameplateWithBase(token, game.customNameplates.calculateAutoScale());
+    } else {
+        return drawCircularNameplateWithBase(token, 1);
+    }
+}
+function drawCircularNameplateWithBase(token, scale = 1, baseRadius = token.h / 2, radiusScale = 10 * scale, maxRopePoints = 100) {
+    const x0 = token.w / 2 / scale;
+    const y0 = token.h / 2;
+    const radius = baseRadius + radiusScale;
+    const step = Math.PI / maxRopePoints;
+    token.nameplate.scale.x = 1;
+    let ropePoints = maxRopePoints - Math.round((token.nameplate.width / (radius * Math.PI)) * maxRopePoints);
+    token.nameplate.scale.x = scale;
+    ropePoints /= 2;
+    let points = [];
+    for (let i = maxRopePoints - ropePoints; i > ropePoints; i--) {
+        const x = radius * Math.cos(step * i);
+        const y = radius * Math.sin(step * i);
+        points.push(new PIXI.Point(x0 + x, y0 - y));
+    }
+
+    const rope = new PIXI.SimpleRope(token.nameplate.texture, points);
+    rope.scale.x = scale;
+    rope.scale.y = scale;
+    return rope;
+}
+function redrawTokenNameplate(token, scale) {
+    if (token.circularNameplate) {
+        token.removeChild(token.circularNameplate);
+        token.circularNameplate = token.addChild(drawCircularNameplate(token, scale));
+    }
+    token.nameplate.scale.set(scale);
 }
 function libWrapperRegister(target, wrapper, type) {
     libWrapper.register(mod, target, wrapper, type);
@@ -298,7 +358,7 @@ Hooks.on("setup", async () => {
     });
     Hooks.once("canvasReady", () => {
         Hooks.on("canvasPan", (c) => {
-            game.customNameplates.checkAutoScale(c);
+            game.customNameplates.performAutoScale(c);
         });
     });
 });
