@@ -60,11 +60,24 @@ export class CustomNameplates {
         }
         return localStyles;
     }
+    getLocalStyle(sceneId) {
+        return this.loadLocalStyles().get(sceneId);
+    }
+    async setLocalStyle(sceneId, styleDefinition) {
+        let localStyles = this.loadLocalStyles();
+        localStyles.set(sceneId, styleDefinition);
+        await this.saveLocalStyles(Object.fromEntries(localStyles));
+    }
     async saveLocalStyles(localStyles) {
         await game.settings.set("custom-nameplates", "local-styles", localStyles);
     }
     async saveGlobalStyle(globalStyle) {
         await game.settings.set("custom-nameplates", "global-style", globalStyle);
+    }
+    async deleteLocalStyle(sceneId) {
+        let localStyles = this.loadLocalStyles();
+        localStyles.delete(sceneId);
+        await this.saveLocalStyles(localStyles);
     }
     isSceneBeingViewed() {
         return this.game.scenes?.viewed;
@@ -172,21 +185,21 @@ class NameplateEditConfig extends FormApplication {
         return "Edit Nameplate Style";
     }
     async getData(options) {
-        let localSetting = game.settings.get(mod, "local-styles")[game.scenes.viewed.id];
-        let hasLocalSettings = localSetting != null;
-        if (!localSetting) {
-            localSetting = DEFAULT_STYLE;
+        let localStyle = game.customNameplates.getLocalStyle(game.scenes.viewed.id);
+        let hasLocalSettings = localStyle != null;
+        if (!localStyle) {
+            localStyle = DEFAULT_STYLE;
         }
         return {
             globalSettings: game.customNameplates.loadGlobalStyle(),
-            localSettings: localSetting,
+            localSettings: localStyle,
             hasLocalSettings: hasLocalSettings,
             fontFamilies: FontConfig.getAvailableFontChoices(),
         };
     }
     async _updateObject(event, formData) {
         if (formData.localConfig) {
-            let localSettings = {
+            let localStyle = {
                 fontFamily: formData.localFontFamily,
                 fontSize: formData.localFontSize,
                 fontColor: formData.localFontColor,
@@ -194,11 +207,7 @@ class NameplateEditConfig extends FormApplication {
                 strokeColor: formData.localStrokeColor,
                 autoScale: formData.globalAutoScaleFont,
             };
-            let localStyles = game.customNameplates.loadLocalStyles();
-            if (game.scenes?.viewed) {
-                localStyles[game.scenes.viewed.id] = localSettings;
-            }
-            await game.customNameplates.saveLocalStyles(localStyles);
+            await game.customNameplates.setLocalStyle(game.scenes.viewed.id, localStyle);
         } else {
             let globalStyle = {
                 fontFamily: formData.globalFontFamily,
@@ -211,12 +220,8 @@ class NameplateEditConfig extends FormApplication {
             await game.customNameplates.saveGlobalStyle(globalStyle);
 
             //Remove local settings (as local settings not enabled)
-            if (game.scenes?.viewed) {
-                let localStyles = game.customNameplates.loadLocalStyles();
-                if (localStyles[game.scenes.viewed.id] != null) {
-                    delete localStyles[game.scenes.viewed.id];
-                    await game.customNameplates.saveLocalStyles(localStyles);
-                }
+            if (game.customNameplates.isSceneBeingViewed()) {
+                await game.customNameplates.deleteLocalStyle(game.scenes.viewed.id);
             }
         }
         ui.notifications.notify("Updated nameplate styles. Please refresh for changes to apply");
