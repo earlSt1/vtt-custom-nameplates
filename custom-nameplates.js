@@ -205,7 +205,7 @@ class NameplateEditConfig extends FormApplication {
                 fontColor: formData.localFontColor,
                 shadowColor: formData.localShadowColor,
                 strokeColor: formData.localStrokeColor,
-                autoScale: formData.globalAutoScaleFont,
+                autoScale: formData.localAutoScaleFont,
             };
             await game.customNameplates.setLocalStyle(game.scenes.viewed.id, localStyle);
         } else {
